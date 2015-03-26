@@ -1,18 +1,6 @@
 /*
- * Copyright (C) 2012-2015 Radical Electronic Systems, South Africa
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
  */
 package com.radicales.sm100.device;
 
@@ -23,16 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Smart Mist 100 Watering Program Object
  *
- * @author
- * Jan Zwiegers,
- * <a href="mailto:jan@radicalsystems.co.za">jan@radicalsystems.co.za</a>,
- * <a href="http://www.radicalsystems.co.za">www.radicalsystems.co.za</a>
- *
- * @version
- * <b>1.0 01/11/2014</b><br>
- * Original release.
+ * @author JanZwiegers
  */
 public class Sm100Program {
 
@@ -49,48 +29,33 @@ public class Sm100Program {
     private int[] gBudget = new int[12];
     private long gControlWord;
     private int gCycleDays;
-    private Sm100ProgramEvent gListener;
 
-    public Sm100Program( String Name, Sm100ProgramEvent Listener ) {
+    public Sm100Program( String Name ) {
         gName = Name;
-        gListener = Listener;
         gControlWord = 0;
         for(int b : gBudget) {
             b = 100;
         }
     }
 
-    public Sm100Program( String Name, long ControlWord, Sm100ProgramEvent Listener ) {
+    public Sm100Program( String Name, long ControlWord ) {
         gName = Name;
         gControlWord = ControlWord;
-        gListener = Listener;
          for(int b : gBudget) {
             b = 100;
         }
     }
 
-    public Sm100Program( String Name, long ControlWord, int[] WaterBudget, StartTime[] StartTimes, Sm100ProgramEvent Listener ) {
+    public Sm100Program( String Name, long ControlWord, int[] WaterBudget, StartTime[] StartTimes ) {
         gName = Name;
         gBudget = WaterBudget;
         gControlWord = ControlWord;
-        gListener = Listener;
         gStartTimes.clear();
         gStartTimes.addAll(Arrays.asList(StartTimes));
     }
 
     public String getName() {
         return gName;
-    }
-
-    public int getRunTime() {
-        int rt = 0;
-        Sm100Zone z;
-        for(Sequence s : gSequences) {
-            z = s.Zone;
-            rt += (s.RunTime + z.getOffDelay());
-        }
-
-        return rt;
     }
 
     public List<StartTime> getStartTimesList() {
@@ -120,27 +85,6 @@ public class Sm100Program {
 
     public void setStartTimesList( List<StartTime> TimesList ) {
         gStartTimes = TimesList;
-    }
-
-    public void addStartTime( StartTime Time ) throws Sm100ProgramException {
-        // check if start time already exist
-        for(StartTime t : gStartTimes) {
-            if(t.matches(Time)) {
-                throw new Sm100ProgramException("Start time already exists");
-            }
-            if(t.overlaps(Time, getRunTime())) {
-                throw new Sm100ProgramException("Start overlaps with " + t.toString() + " and total program runtime of " + Integer.toString(getRunTime()) + " minutes");
-            }
-        }
-        gStartTimes.add(Time);
-        gListener.eventStartListChanged(this, gStartTimes);
-    }
-
-    public void removeStartTime( StartTime Time ) throws Sm100ProgramException {
-        if(!gStartTimes.remove(Time)) {
-            throw new Sm100ProgramException("Start time does not exist or list is empty");
-        }
-        gListener.eventStartListChanged(this, gStartTimes);
     }
 
     public void setWaterBudget( int[] Budget ) {

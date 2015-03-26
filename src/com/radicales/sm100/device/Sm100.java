@@ -1,18 +1,6 @@
 /*
- * Copyright (C) 2012-2015 Radical Electronic Systems, South Africa
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
  */
 package com.radicales.sm100.device;
 
@@ -21,18 +9,10 @@ import com.radicales.sm100.protocol.*;
 import java.util.*;
 
 /**
- * Smart Mist 100 Device Object
  *
- * @author
- * Jan Zwiegers,
- * <a href="mailto:jan@radicalsystems.co.za">jan@radicalsystems.co.za</a>,
- * <a href="http://www.radicalsystems.co.za">www.radicalsystems.co.za</a>
- *
- * @version
- * <b>1.0 01/11/2014</b><br>
- * Original release.
+ * @author JanZwiegers
  */
-public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
+public class Sm100 implements Runnable, X4smEvent {
 
     private static final int STATE_INIT = 0;
     private static final int STATE_CONNECTING = 1;
@@ -117,12 +97,14 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
         gEventListeners.remove(Listener);
     }
 
+
     public String getIpAddress() {
         return gComm.getIpAddress();
     }
 
-    public void setIpAddress( String Value ) {
+    public void setIpAddress( String Value, int port ) {
         gComm.setIpAddress(Value);
+        gComm.setPort(port);
     }
 
     public String getDescription() {
@@ -187,7 +169,7 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
 
         if(gZones.remove(zone)) {
             for(Sm100Event ev : gEventListeners) {
-                ev.eventZonesUpdate(gZones);
+                ev.eventZoneUpdate(gZones);
             }
         }
     }
@@ -223,7 +205,7 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
         z.setChannel(c);
         gZones.add(z);
         for(Sm100Event ev : gEventListeners) {
-            ev.eventZonesUpdate(gZones);
+            ev.eventZoneUpdate(gZones);
         }
     }
 
@@ -244,7 +226,7 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
     }
 
     public void addProgram(String Name, long ControlWord, int[] WaterBudget, StartTime[] StartTimes ) {
-        Sm100Program p = new Sm100Program(Name, ControlWord, WaterBudget, StartTimes, this);
+        Sm100Program p = new Sm100Program(Name, ControlWord, WaterBudget, StartTimes);
         gPrograms.add(p);
     }
 
@@ -515,7 +497,7 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
                         }
                         else {
                             for(Sm100Event ev : gEventListeners) {
-                                ev.eventZonesUpdate(gZones);
+                                ev.eventZoneUpdate(gZones);
                             }
                             X4smGetProgramsMessage msg = new X4smGetProgramsMessage();
                             this.gComm.sendMessage(msg);
@@ -551,7 +533,7 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
                     }
                     else if(state == STATE_GET_PROGRAM_DONE) {
                         for(Sm100Event ev : gEventListeners) {
-                             ev.eventProgramsUpdate(gPrograms);
+                             ev.eventProgramUpdate(gPrograms);
                         }
                         state = STATE_CONNECTED;
                     }
@@ -688,7 +670,7 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
     public void eventPrograms(String[] Names) {
        gPrograms.clear();
        for(String n : Names) {
-           Sm100Program p = new Sm100Program(n, this);
+           Sm100Program p = new Sm100Program(n);
            gPrograms.add(p);
        }
 
@@ -725,17 +707,17 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
     @Override
     public void eventZones(String[] Names) {
        gZones.clear();
-       for(String n : Names) {
-           Sm100Zone z = new Sm100Zone(n);
-           gZones.add(z);
-       }
+    //    if (Names != null) {
+            for (String n : Names) {
+                Sm100Zone z = new Sm100Zone(n);
+                gZones.add(z);
+            }
 
-       if(getState() == STATE_GET_ZONELIST) {
-           setState(STATE_GETZONE + 100);
-           this.gIndex = 0;
-       }
-
-
+            if (getState() == STATE_GET_ZONELIST) {
+                setState(STATE_GETZONE + 100);
+                this.gIndex = 0;
+            }
+      //  }
     }
 
     @Override
@@ -838,16 +820,6 @@ public class Sm100 implements Runnable, X4smEvent, Sm100ProgramEvent {
             }
             setState(STATE_IDLE + 100);
         }
-    }
-
-    @Override
-    public void eventStartListChanged(Sm100Program Program, List<StartTime> StartTimeList) {
-
-         System.out.println("eventStartListChanged");
-
-        for(Sm100Event ev : gEventListeners) {
-                ev.eventProgramStartTimesUpdate(Program, StartTimeList);
-            }
     }
 
 }
