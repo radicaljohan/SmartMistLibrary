@@ -1,6 +1,18 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2012-2015 Radical Electronic Systems, South Africa
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.radicales.sm100.protocol;
 
@@ -14,8 +26,16 @@ import java.util.List;
 import java.util.Calendar;
 
 /**
+ * XML For Smart Mist Main Communications Object
  *
- * @author JanZwiegers
+ * @author
+ * Jan Zwiegers,
+ * <a href="mailto:jan@radicalsystems.co.za">jan@radicalsystems.co.za</a>,
+ * <a href="http://www.radicalsystems.co.za">www.radicalsystems.co.za</a>
+ *
+ * @version
+ * <b>1.0 01/11/2014</b><br>
+ * Original release.
  */
 public class X4smComm implements CalDriverEvent, Runnable {
 
@@ -38,15 +58,17 @@ public class X4smComm implements CalDriverEvent, Runnable {
         gEventListeners = new ArrayList();
     }
 
+    public void setIpAddress( String Value ) {
+        gIpAddress = Value;
+        gDriver.setIpAddress(Value);
+    }
+
     public boolean Start() {
         if(gRunning) {
           return false;
        }
 
         try {
-            if (gDriver == null) {
-                gDriver = new TCPClient(gIpAddress,gPort);
-            }
             gDriver.Open();
             gDriver.Start();
             gDriver.addEventListener(this);
@@ -54,7 +76,6 @@ public class X4smComm implements CalDriverEvent, Runnable {
             if(gDriver.isOpen()) {
               try {
                   gDriver.Close();
-                  gDriver = null;
               } catch (CalDriverException exx) {
               }
             }
@@ -82,12 +103,9 @@ public class X4smComm implements CalDriverEvent, Runnable {
         }
 
         try {
-            if ( gDriver != null) {
-                gDriver.removeEventListener(this);
-                gDriver.Stop();
-                gDriver.Close();
-                gDriver = null;
-            }
+            gDriver.removeEventListener(this);
+            gDriver.Stop();
+            gDriver.Close();
         } catch (CalDriverException ex) {
         }
     }
@@ -100,16 +118,8 @@ public class X4smComm implements CalDriverEvent, Runnable {
         gEventListeners.remove(Listener);
     }
 
-    public void setIpAddress( String ipAddress) {
-        gIpAddress = ipAddress;
-    }
-
     public String getIpAddress() {
         return gIpAddress;
-    }
-
-    public void setPort(int port) {
-        gPort = port;
     }
 
     public int getPort() {
